@@ -1,10 +1,12 @@
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 import scipy.stats as stats
-import os
+from scipy.fft import fft, fftfreq
+from statsmodels.graphics.tsaplots import plot_acf
 
 
 def perform_regression_analysis(file_path: str, dof: int = 2, cutoff: int = None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -88,7 +90,42 @@ def plot_qq(residuals: tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
     plt.tight_layout(rect=[0, 0, 1, 0.97])
     plt.show()
 
+
+def plot_autocorrelation_and_fft(residuals: tuple[np.ndarray, np.ndarray, np.ndarray], sampling_rate: float = 1.0) -> None:
+    """
+    Plots autocorrelation and FFT (frequency spectrum) for each axis of the residuals.
+
+    Args:
+        residuals: A tuple of three numpy arrays (x_residuals, y_residuals, z_residuals).
+        sampling_rate: The rate at which the data was sampled (used to calculate frequency axis).
+    """
+    axes_labels = ['X Axis', 'Y Axis', 'Z Axis']
+
+    for i, axis_res in enumerate(residuals):
+        fig, axs = plt.subplots(1, 2, figsize=(14, 4))
+        fig.suptitle(f'Residual Analysis - {axes_labels[i]}')
+
+        # Autocorrelation
+        plot_acf(axis_res, ax=axs[0], lags=50)
+        axs[0].set_title('Autocorrelation')
+        axs[0].grid(alpha=0.3)
+
+        # FFT
+        n = len(axis_res)
+        yf = fft(axis_res)
+        xf = fftfreq(n, d=1.0 / sampling_rate)[:n // 2]  # positive frequencies
+        axs[1].plot(xf, 2.0 / n * np.abs(yf[:n // 2]))
+        axs[1].set_title('FFT - Frequency Spectrum')
+        axs[1].set_xlabel('Frequency (Hz)')
+        axs[1].set_ylabel('Amplitude')
+        axs[1].grid(alpha=0.3)
+
+        plt.tight_layout()
+        plt.show()
+
+
 if __name__ == "__main__":
-    residuals = perform_regression_analysis("../data/tooltip_positions_3.csv", 2,75)
+    residuals = perform_regression_analysis("../data/tooltip_positions_3.csv", 5,50)
     plot_residuals(residuals)
     plot_qq(residuals)
+    plot_autocorrelation_and_fft(residuals, 1.0)

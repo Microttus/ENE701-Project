@@ -1,91 +1,99 @@
-# ENE701-Project
-Repo for my Statistics project in the ENE701 subject for the PhD course on UiA
+# 📊 Statistical Analysis of Robotic Tool Paths
 
-## Noise Ananlysis
-
-**Q-Q Plot Interpretation:**
-
-- If the points fall along the reference line, the residuals follow the specified distribution (e.g., normal).
-- S-shaped curve: Indicates heavy or light tails in the data distribution.
-- Upward/Downward bends:
-  - Points above the line at the start: Positive skew.
-  - Points below the line at the start: Negative skew.
-- Outliers: Points far away from the line indicate potential deviations from the expected distribution.
-
-## Types of Distributions for Q-Q Plot Analysis
-
-### 1. Normal Distribution (`norm`)
-- Symmetric, bell-shaped curve.
-- Most common assumption for noise.
-- Indicates normally distributed residuals.
+This project is developed as part of the **ENE701 - Statistics** course and focuses on applying statistical methods to real-world data generated from a robotic system trained with reinforcement learning (RL). The goal is to analyze the motion of a robot arm's tooltip while performing a disassembly task.
 
 ---
 
-### 2. Uniform Distribution (`uniform`)
-- Equal probability for all values within a range.
-- No central tendency.
-- Residuals are evenly spread across the range.
+## 🎯 Project Objective
+
+Use statistical methods to explore, interpret, and model tooltip trajectories recorded during the execution of a robotic disassembly task. This includes generating synthetic data, analyzing real recorded data, evaluating residuals, and understanding the type and structure of the noise present.
 
 ---
 
-### 3. Laplace Distribution (`laplace`)
-- Heavy-tailed distribution.
-- Indicates the presence of more extreme values or outliers.
-- Steeper peak and fatter tails compared to a normal distribution.
+## 📂 Project Structure
+
+```
+.
+├── CHANGELOG.md                  # Summary of changes and updates
+├── LICENSE                       # Project license
+├── README.md                     # This file
+├── data/                         # Real and synthetic data, plus visualization outputs
+│   ├── tool_path_data.csv        # Generated synthetic path data
+│   ├── tooltip_positions_*.csv   # Recorded RL-based robot tooltip positions
+│   ├── images/                   # Generated plots (residuals, regressions, etc.)
+├── docs/                         # Supplemental documents and markdown explanations
+│   ├── autoffm.md                # Autocorrelation and FFT method explanation
+│   └── qqplotguide.md            # Guide for interpreting Q-Q plots
+├── source/                       # Python source code
+│   ├── path-generation.py        # Code to generate synthetic data with noise
+│   ├── path_analysis.py          # Code to visualize and explore real/synthetic paths
+│   └── regression_ananlysis.py   # Regression modeling and residual analysis
+```
 
 ---
 
-### 4. Exponential Distribution (`expon`)
-- Right-skewed distribution.
-- Often used to model the time until an event occurs.
-- Suitable for modeling waiting times or decay.
+## 📈 Techniques Used
+
+* **Quadratic and Polynomial Regression**
+* **Residual Noise Estimation**
+* **Q-Q Plot Analysis**
+* **Autocorrelation Function (ACF)**
+* **Fast Fourier Transform (FFT)**
+* **Time Series Visualization**
 
 ---
 
-### 5. Gamma Distribution (`gamma`)
-- Right-skewed, can model waiting times or decay processes.
-- More flexible shape than the exponential distribution.
+## 🧪 Dataset
+
+The primary data used in this project consists of:
+
+* **Synthetic trajectories** generated using second-order optimal paths plus Gaussian Process-based noise.
+* **Recorded robot tooltip positions** during disassembly, produced by a trained RL agent performing a proof-of-concept task.
 
 ---
 
-### 6. Beta Distribution (`beta`)
-- Defined between 0 and 1.
-- Useful for bounded data, such as proportions and probabilities.
+## 🎓 Course Context
+
+This project is conducted within the scope of the ENE701 Statistics course, whose aim is:
+
+> *To enable participants to perform statistical analysis on their own data and relate the results to practical applications using both frequentist and Bayesian concepts.*
+
+Topics covered in this course include:
+
+* Condensing and visualizing data
+* Probability and statistical inference
+* Hypothesis testing and confidence intervals
+* Gaussian and Poisson processes
+* Regression analysis (linear, multiple, logistic)
+* Planning and interpreting experiments
+
+This project forms a part of the practical component and will contribute toward the final oral examination.
 
 ---
 
-### 7. Chi-Square Distribution (`chi2`)
-- Right-skewed, dependent on degrees of freedom.
-- Often used for variance analysis and goodness-of-fit tests.
+## 📌 How to Run
+
+1. Clone or download the project.
+2. Install Python dependencies:
+
+   ```bash
+   pip install numpy pandas matplotlib scipy scikit-learn statsmodels
+   ```
+3. Run individual analysis scripts in the `source/` folder to generate data or plots.
+
+   ```bash
+   python source/path_analysis.py
+   ```
 
 ---
 
-### 8. Student's t-Distribution (`t`)
-- Similar to normal distribution but with heavier tails.
-- Useful for small sample sizes or data with outliers.
+## 👨‍💻 Author
 
-
-## All the Listed Distributions Produce Stochastic Noise
-
-All of the following distributions generate **stochastic (random) noise**, meaning each value is sampled from a probability distribution rather than computed deterministically.
-
-| Distribution         | Stochastic Nature                                            | Notes |
-|----------------------|--------------------------------------------------------------|-------|
-| **Normal (`norm`)**     | Random values cluster around the mean                      | Classic \"white noise\" model |
-| **Uniform (`uniform`)** | Random values spread evenly across a range                 | Equal chance for all outcomes |
-| **Laplace (`laplace`)** | Random values with a sharper peak and heavier tails        | More frequent large deviations |
-| **Exponential (`expon`)** | Random values decay over time, right-skewed             | Models time between events |
-| **Gamma (`gamma`)**     | Right-skewed, used for positive-valued stochastic models   | Waiting time or decay processes |
-| **Beta (`beta`)**       | Stochastic values in [0,1], shape-dependent                | Good for modeling probabilities |
-| **Chi-square (`chi2`)** | Non-negative, right-skewed stochastic process              | Arises from sum of squared normals |
-| **Student’s t (`t`)**   | Stochastic like normal, but heavier tails                  | More robust to outliers |
+This work is part of the practical coursework by a student of Mechatronics Engineering, using real RL robot data for meaningful statistical evaluation.
 
 ---
 
-## What Does This Mean?
+## 📜 License
 
-- These distributions produce **random variation**, which is central to modeling uncertainty or noise in systems.
-- The *type* of distribution affects:
-  - How often large deviations occur
-  - Whether the distribution is symmetric or skewed
-  - Whether it's bounded (like `beta`) or unbounded (like `normal`)
+This project is licensed under the terms in the `LICENSE` file.
+
