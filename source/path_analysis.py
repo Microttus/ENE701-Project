@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 
 
-def plot_tool_path_data(file_path: str) -> None:
+def plot_tool_path_data(file_path: str, cutoff: int = None) -> None:
     """Reads the CSV data and plots the x, y, z components for each round."""
     if not os.path.exists(file_path):
         print(f"File not found: {file_path}")
@@ -18,6 +18,11 @@ def plot_tool_path_data(file_path: str) -> None:
         y_vals = row[1::3]
         z_vals = row[2::3]
 
+        if cutoff is not None:
+            x_vals = x_vals[:cutoff]
+            y_vals = y_vals[:cutoff]
+            z_vals = z_vals[:cutoff]
+
         plt.plot(x_vals, label=f"Round {idx+1} - X")
         plt.plot(y_vals, label=f"Round {idx+1} - Y")
         plt.plot(z_vals, label=f"Round {idx+1} - Z")
@@ -31,7 +36,7 @@ def plot_tool_path_data(file_path: str) -> None:
     plt.show()
 
 
-def plot_3d_tool_path_data(file_path: str) -> None:
+def plot_3d_tool_path_data(file_path: str, cutoff: int = None) -> None:
     """Reads the CSV data and plots the path in 3D space."""
     if not os.path.exists(file_path):
         print(f"File not found: {file_path}")
@@ -47,17 +52,21 @@ def plot_3d_tool_path_data(file_path: str) -> None:
         y_vals = row[1::3]
         z_vals = row[2::3]
 
+        if cutoff is not None:
+            x_vals = x_vals[:cutoff]
+            y_vals = y_vals[:cutoff]
+            z_vals = z_vals[:cutoff]
+
         ax.plot(x_vals, y_vals, z_vals, label=f"Round {idx+1}")
 
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_zlabel("Z")
     ax.set_title("3D Tool Path Data Visualization")
-    #ax.legend()
     plt.show()
 
 
 if __name__ == "__main__":
     # Example usage
-    plot_tool_path_data("../data/tooltip_positions_3.csv")
-    plot_3d_tool_path_data("../data/tooltip_positions_3.csv")
+    plot_tool_path_data("../data/tooltip_positions_3.csv", 75)
+    plot_3d_tool_path_data("../data/tooltip_positions_3.csv", 75)
