@@ -7,7 +7,7 @@ import scipy.stats as stats
 import os
 
 
-def perform_regression_analysis(file_path: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def perform_regression_analysis(file_path: str, dof: int = 2, cutoff: int = None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Reads the CSV data and performs quadratic regression for each axis, plotting each axis in separate subplots with regression overlay."""
     if not os.path.exists(file_path):
         print(f"File not found: {file_path}")
@@ -23,7 +23,8 @@ def perform_regression_analysis(file_path: str) -> tuple[np.ndarray, np.ndarray,
     residuals = []
     for axis_index in range(3):
         axis_data = data.iloc[:, axis_index::3]
-        trial_count = axis_data.shape[1]
+        trial_count = axis_data.shape[1] if cutoff is None else min(cutoff, axis_data.shape[1])
+        axis_data = axis_data.iloc[:, :trial_count]
         time_steps = np.arange(trial_count)
 
         # Flatten data for regression
@@ -31,7 +32,7 @@ def perform_regression_analysis(file_path: str) -> tuple[np.ndarray, np.ndarray,
         y = axis_data.values.flatten()
 
         # Perform quadratic regression
-        poly = PolynomialFeatures(degree=2)
+        poly = PolynomialFeatures(degree=dof)
         X_poly = poly.fit_transform(X)
         model = LinearRegression()
         model.fit(X_poly, y)
@@ -42,14 +43,14 @@ def perform_regression_analysis(file_path: str) -> tuple[np.ndarray, np.ndarray,
             axes[axis_index].plot(time_steps, row, alpha=0.5, color=light_blue)
 
         # Plot quadratic regression line
-        axes[axis_index].plot(time_steps, y_pred[:trial_count], color=dark_blue, linewidth=2, label="Quadratic Regression")
+        axes[axis_index].plot(time_steps, y_pred[:trial_count], color=dark_blue, linewidth=2, label="Regression Line")
         # Calculate residuals (noise)
         residuals.append(axis_data.values.flatten() - y_pred)
         axes[axis_index].set_title(axes_titles[axis_index])
         axes[axis_index].grid(alpha=0.3)
 
     plt.xlabel("Trial")
-    plt.suptitle("Quadratic Regression Analysis for Each Axis")
+    plt.suptitle("Regression Analysis for Each Axis")
     plt.tight_layout(rect=[0, 0, 1, 0.97])
     plt.show()
 
@@ -79,6 +80,7 @@ def plot_qq(residuals: tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
 
     for i, axis_residuals in enumerate(residuals):
         stats.probplot(axis_residuals, dist=stats.norm, plot=axes[i])
+        #stats.probplot(axis_residuals, dist=stats.chi2, sparams=(5,), plot=axes[i])
         axes[i].set_title(axes_titles[i])
         axes[i].grid(alpha=0.3)
 
@@ -87,6 +89,6 @@ def plot_qq(residuals: tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
     plt.show()
 
 if __name__ == "__main__":
-    residuals = perform_regression_analysis("../data/tool_path_data.csv")
+    residuals = perform_regression_analysis("../data/tooltip_positions_3.csv", 2,75)
     plot_residuals(residuals)
     plot_qq(residuals)

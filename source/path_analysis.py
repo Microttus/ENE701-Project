@@ -59,5 +59,5 @@ def plot_3d_tool_path_data(file_path: str) -> None:
 
 if __name__ == "__main__":
     # Example usage
-    plot_tool_path_data("../data/tool_path_data.csv")
-    plot_3d_tool_path_data("../data/tool_path_data.csv")
+    plot_tool_path_data("../data/tooltip_positions_3.csv")
+    plot_3d_tool_path_data("../data/tooltip_positions_3.csv")

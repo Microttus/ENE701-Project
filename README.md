@@ -63,3 +63,29 @@ Repo for my Statistics project in the ENE701 subject for the PhD course on UiA
 ### 8. Student's t-Distribution (`t`)
 - Similar to normal distribution but with heavier tails.
 - Useful for small sample sizes or data with outliers.
+
+
+## All the Listed Distributions Produce Stochastic Noise
+
+All of the following distributions generate **stochastic (random) noise**, meaning each value is sampled from a probability distribution rather than computed deterministically.
+
+| Distribution         | Stochastic Nature                                            | Notes |
+|----------------------|--------------------------------------------------------------|-------|
+| **Normal (`norm`)**     | Random values cluster around the mean                      | Classic \"white noise\" model |
+| **Uniform (`uniform`)** | Random values spread evenly across a range                 | Equal chance for all outcomes |
+| **Laplace (`laplace`)** | Random values with a sharper peak and heavier tails        | More frequent large deviations |
+| **Exponential (`expon`)** | Random values decay over time, right-skewed             | Models time between events |
+| **Gamma (`gamma`)**     | Right-skewed, used for positive-valued stochastic models   | Waiting time or decay processes |
+| **Beta (`beta`)**       | Stochastic values in [0,1], shape-dependent                | Good for modeling probabilities |
+| **Chi-square (`chi2`)** | Non-negative, right-skewed stochastic process              | Arises from sum of squared normals |
+| **Student’s t (`t`)**   | Stochastic like normal, but heavier tails                  | More robust to outliers |
+
+---
+
+## What Does This Mean?
+
+- These distributions produce **random variation**, which is central to modeling uncertainty or noise in systems.
+- The *type* of distribution affects:
+  - How often large deviations occur
+  - Whether the distribution is symmetric or skewed
+  - Whether it's bounded (like `beta`) or unbounded (like `normal`)
