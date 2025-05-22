@@ -47,6 +47,9 @@ def plot_3d_tool_path_data(file_path: str, cutoff: int = None) -> None:
     fig = plt.figure(figsize=(12, 8))
     ax = fig.add_subplot(111, projection='3d')
 
+    cmap = plt.colormaps['rainbow']  # Or 'rainbow', 'plasma', etc.
+    num_lines = len(data)
+
     for idx, row in data.iterrows():
         x_vals = row[::3]
         y_vals = row[1::3]
@@ -57,7 +60,8 @@ def plot_3d_tool_path_data(file_path: str, cutoff: int = None) -> None:
             y_vals = y_vals[:cutoff]
             z_vals = z_vals[:cutoff]
 
-        ax.plot(x_vals, y_vals, z_vals, label=f"Round {idx+1}")
+        color = cmap(idx / num_lines)  # Color varies with line index
+        ax.plot(x_vals, y_vals, z_vals, color=color, label=f"Round {idx+1}")
 
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
@@ -68,5 +72,5 @@ def plot_3d_tool_path_data(file_path: str, cutoff: int = None) -> None:
 
 if __name__ == "__main__":
     # Example usage
-    plot_tool_path_data("../data/tooltip_positions_3.csv", 75)
-    plot_3d_tool_path_data("../data/tooltip_positions_3.csv", 75)
+    plot_tool_path_data("../data/tooltip_positions_4.2.csv", 75)
+    plot_3d_tool_path_data("../data/tooltip_positions_4.2.csv", 75)

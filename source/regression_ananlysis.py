@@ -125,7 +125,7 @@ def plot_autocorrelation_and_fft(residuals: tuple[np.ndarray, np.ndarray, np.nda
 
 
 if __name__ == "__main__":
-    residuals = perform_regression_analysis("../data/tooltip_positions_3.csv", 5,50)
+    residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 5)
     plot_residuals(residuals)
     plot_qq(residuals)
     plot_autocorrelation_and_fft(residuals, 1.0)
