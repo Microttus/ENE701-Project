@@ -1,4 +1,4 @@
-<img src="/home/rhino/ENE701-Project/data/images/Serpent _R_.png"/>{./data/images/Serpent_R_.png}
+<img src="data/images/Serpent _R_.png"/>
 
 # 📊 Statistical Analysis of Robotic Tool Paths
 
