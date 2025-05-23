@@ -1,3 +1,5 @@
+<img src="/home/rhino/ENE701-Project/data/images/Serpent _R_.png"/>{./data/images/Serpent_R_.png}
+
 # 📊 Statistical Analysis of Robotic Tool Paths
 
 This project is developed as part of the **ENE701 - Statistics** course and focuses on applying statistical methods to real-world data generated from a robotic system trained with reinforcement learning (RL). The goal is to analyze the motion of a robot arm's tooltip while performing a disassembly task.

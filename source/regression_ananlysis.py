@@ -1,4 +1,6 @@
 import os
+from typing import Any
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,6 +9,7 @@ from sklearn.linear_model import LinearRegression
 import scipy.stats as stats
 from scipy.fft import fft, fftfreq
 from statsmodels.graphics.tsaplots import plot_acf
+from statsmodels.tsa.arima.model import ARIMA
 
 
 def perform_regression_analysis(file_path: str, dof: int = 2, cutoff: int = None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -82,7 +85,7 @@ def plot_qq(residuals: tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
 
     for i, axis_residuals in enumerate(residuals):
         stats.probplot(axis_residuals, dist=stats.norm, plot=axes[i])
-        #stats.probplot(axis_residuals, dist=stats.chi2, sparams=(5,), plot=axes[i])
+        #stats.probplot(axis_residuals, dist=stats.t, sparams=(5,), plot=axes[i])
         axes[i].set_title(axes_titles[i])
         axes[i].grid(alpha=0.3)
 
@@ -123,9 +126,46 @@ def plot_autocorrelation_and_fft(residuals: tuple[np.ndarray, np.ndarray, np.nda
         plt.tight_layout()
         plt.show()
 
+def plot_arima_fit(residuals: tuple[np.ndarray, np.ndarray, np.ndarray], order: tuple = (2, 0, 2)) -> list[Any]:
+    """
+    Fits and plots an ARIMA model for each axis of the residuals.
+
+    Args:
+        residuals: A tuple of three numpy arrays (x_residuals, y_residuals, z_residuals).
+        order: ARIMA order (p, d, q) — default is (2, 0, 2).
+    """
+    axes_labels = ['X Axis', 'Y Axis', 'Z Axis']
+
+    arima_model_fit = []
+
+    for i, axis_res in enumerate(residuals):
+        model = ARIMA(axis_res, order=order)
+        model_fit = model.fit()
+
+        arima_model_fit.append(model_fit.fittedvalues)
+
+        # Plot original and fitted
+        fig, ax = plt.subplots(figsize=(12, 4))
+        ax.plot(axis_res, label="Original Residuals", alpha=0.5)
+        ax.plot(model_fit.fittedvalues, label="ARIMA Fitted", color="darkblue")
+        ax.set_title(f"ARIMA Fit on {axes_labels[i]} Residuals")
+        ax.set_xlabel("Time Step")
+        ax.set_ylabel("Residual Value")
+        ax.legend()
+        ax.grid(alpha=0.3)
+        plt.tight_layout()
+        plt.show()
+
+        print(f"=== ARIMA({order}) Model Summary for {axes_labels[i]} ===")
+        print(model_fit.summary())
+
+    return arima_model_fit
+
 
 if __name__ == "__main__":
-    residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 5)
+    residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 5, cutoff=20)
     plot_residuals(residuals)
     plot_qq(residuals)
     plot_autocorrelation_and_fft(residuals, 1.0)
+    arima_residuals = plot_arima_fit(residuals, order=(2, 0, 2))
+    plot_autocorrelation_and_fft(arima_residuals, 1.0)
