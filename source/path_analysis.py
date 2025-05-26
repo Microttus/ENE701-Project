@@ -71,6 +71,9 @@ def plot_3d_tool_path_data(file_path: str, cutoff: int = None) -> None:
 
 
 if __name__ == "__main__":
-    # Example usage
+    ##Data analysis
     plot_tool_path_data("../data/tooltip_positions_4.2.csv", 75)
     plot_3d_tool_path_data("../data/tooltip_positions_4.2.csv", 75)
+    ##Syntetic data
+    plot_tool_path_data("../data/tool_path_data.csv")
+    plot_3d_tool_path_data("../data/tool_path_data.csv")

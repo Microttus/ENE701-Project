@@ -53,8 +53,8 @@ def perform_regression_analysis(file_path: str, dof: int = 2, cutoff: int = None
         residuals.append(axis_data.values.flatten() - y_pred)
         axes[axis_index].set_title(axes_titles[axis_index])
         axes[axis_index].grid(alpha=0.3)
+        axes[-1].set_xlabel("Time Step")
 
-    plt.xlabel("Trial")
     plt.suptitle("Regression Analysis for Each Axis")
     plt.tight_layout(rect=[0, 0, 1, 0.97])
     plt.show()
@@ -72,6 +72,7 @@ def plot_residuals(residuals: tuple[np.ndarray, np.ndarray, np.ndarray]) -> None
         axes[i].plot(axis_residuals, color=dark_blue, alpha=0.7)
         axes[i].set_title(axes_titles[i])
         axes[i].grid(alpha=0.3)
+        axes[-1].set_ylabel("Amplitude")
 
     plt.xlabel("Data Point Index")
     plt.suptitle("Residuals (Noise) for Each Axis")
@@ -85,7 +86,8 @@ def plot_qq(residuals: tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
 
     for i, axis_residuals in enumerate(residuals):
         stats.probplot(axis_residuals, dist=stats.norm, plot=axes[i])
-        #stats.probplot(axis_residuals, dist=stats.t, sparams=(5,), plot=axes[i])
+        #stats.probplot(axis_residuals, dist=stats.t, sparams=(5, ), plot=axes[i])
+        #stats.probplot(axis_residuals, dist=stats.beta, sparams=(2, 5), plot=axes[i])
         axes[i].set_title(axes_titles[i])
         axes[i].grid(alpha=0.3)
 
@@ -112,6 +114,8 @@ def plot_autocorrelation_and_fft(residuals: tuple[np.ndarray, np.ndarray, np.nda
         plot_acf(axis_res, ax=axs[0], lags=50)
         axs[0].set_title('Autocorrelation')
         axs[0].grid(alpha=0.3)
+        axs[0].set_xlabel('Time Step Deviation')
+        axs[0].set_ylabel('Correlation')
 
         # FFT
         n = len(axis_res)
@@ -156,7 +160,7 @@ def plot_arima_fit(residuals: tuple[np.ndarray, np.ndarray, np.ndarray], order: 
         plt.tight_layout()
         plt.show()
 
-        print(f"=== ARIMA({order}) Model Summary for {axes_labels[i]} ===")
+        print(f"==================== ARIMA({order}) Model Summary for {axes_labels[i]} ===================")
         print(model_fit.summary())
 
     return arima_model_fit
@@ -164,6 +168,10 @@ def plot_arima_fit(residuals: tuple[np.ndarray, np.ndarray, np.ndarray], order: 
 
 if __name__ == "__main__":
     residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 5, cutoff=20)
+    #residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 7, cutoff=50)
+    #residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 7, cutoff=20)
+    #residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 15, cutoff=250)
+    #residuals = perform_regression_analysis("../data/tool_path_data.csv", 3)
     plot_residuals(residuals)
     plot_qq(residuals)
     plot_autocorrelation_and_fft(residuals, 1.0)

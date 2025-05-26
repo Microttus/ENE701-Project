@@ -64,12 +64,12 @@ def generate_tool_path_data(equation: Callable[[float], Tuple[float, float, floa
 def main():
     # Example usage with a quadratic path
     def quadratic_path(t) -> Tuple[float, float, float]:
-        x = 5 * t ** 2
-        y = -3 * t ** 2 + 4 * t
-        z = 2 * t ** 2 - t + 3
+        x = - 0.771 * t ** 3 + 1.156 * t ** 2 - 0.500 * t + 0.659
+        y = - 0.710 * t ** 3 + 1.119 * t ** 2 - 0.517 * t + 0.469
+        z = - 0.001 * t ** 3 + 0.090 * t ** 2 - 0.090 * t + 0.215
         return x, y, z
 
-    generate_tool_path_data(quadratic_path, noise_factor=0.3, trials=1000, rounds=100,
+    generate_tool_path_data(quadratic_path, noise_factor=0.001, trials=1000, rounds=100,
                             output_path="../data/tool_path_data.csv")
 
 
