@@ -13,7 +13,8 @@ from statsmodels.tsa.arima.model import ARIMA
 
 
 def perform_regression_analysis(file_path: str, dof: int = 2, cutoff: int = None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Reads the CSV data and performs quadratic regression for each axis, plotting each axis in separate subplots with regression overlay."""
+    """Reads the CSV data and performs q
+    uadratic regression for each axis, plotting each axis in separate subplots with regression overlay."""
     if not os.path.exists(file_path):
         print(f"File not found: {file_path}")
         return
@@ -95,6 +96,13 @@ def plot_qq(residuals: tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
     plt.tight_layout(rect=[0, 0, 1, 0.97])
     plt.show()
 
+    fig_qq, ax_qq = plt.subplots(figsize=(12, 6))
+    stats.probplot(residuals[0], dist=stats.norm, plot=ax_qq)
+    ax_qq.set_title("Q-Q Plot for X Axis Residuals")
+    ax_qq.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
 
 def plot_autocorrelation_and_fft(residuals: tuple[np.ndarray, np.ndarray, np.ndarray], sampling_rate: float = 1.0) -> None:
     """
@@ -107,7 +115,8 @@ def plot_autocorrelation_and_fft(residuals: tuple[np.ndarray, np.ndarray, np.nda
     axes_labels = ['X Axis', 'Y Axis', 'Z Axis']
 
     for i, axis_res in enumerate(residuals):
-        fig, axs = plt.subplots(1, 2, figsize=(14, 4))
+        #fig, axs = plt.subplots(1, 2, figsize=(14, 4))
+        fig, axs = plt.subplots(2, 1, figsize=(8, 12))
         fig.suptitle(f'Residual Analysis - {axes_labels[i]}')
 
         # Autocorrelation
@@ -167,11 +176,11 @@ def plot_arima_fit(residuals: tuple[np.ndarray, np.ndarray, np.ndarray], order: 
 
 
 if __name__ == "__main__":
-    residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 5, cutoff=20)
+    #residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 5, cutoff=20)
     #residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 7, cutoff=50)
     #residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 7, cutoff=20)
     #residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 15, cutoff=250)
-    #residuals = perform_regression_analysis("../data/tool_path_data.csv", 3)
+    residuals = perform_regression_analysis("../data/tool_path_data.csv", 3)
     plot_residuals(residuals)
     plot_qq(residuals)
     plot_autocorrelation_and_fft(residuals, 1.0)
