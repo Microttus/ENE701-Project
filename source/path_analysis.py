@@ -6,6 +6,7 @@ import numpy as np
 import os
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.lines import Line2D
+from typing import Optional, List
 
 
 def plot_tool_path_data(file_path: str, cutoff: int = None) -> None:
@@ -172,77 +173,102 @@ def plot_3d_tool_path_data(file_path: str, cutoff: int = None) -> None:
     plt.tight_layout()
     plt.show()
 
-
-def plot_all_3d_paths(folder_name: str, cutoff: int = None, run_index: int = None) -> None:
-    """Plots 3D paths for tooltip, pin, pipe, and center from a folder with CSV files.
-
+def plot_all_3d_paths(folder_name: str,
+                      cutoff: Optional[int]   = None,
+                      run_index: Optional[int] = None,
+                      custom_steps:  Optional[List[int]] = None,
+                      custom_marker: str      = 'D',
+                      custom_color:  str      = 'black',
+                      custom_text:   str      = 'Custom marker') -> None:
+    """
+    Plots 3D paths for tooltip, pin, pipe, and center from a folder of CSVs.
     If run_index is specified, only that run will be plotted for each object.
+    Optionally mark custom steps along each trajectory.
     """
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    base_path = os.path.join(project_root, "data", folder_name)
+    base_path    = os.path.join(project_root, "data", folder_name)
+
     file_map = {
         "tooltip_positions.csv": "Tooltip",
-        "pin_positions.csv": "Pin",
-        "pipe_positions.csv": "Pipe",
-        "center_positions.csv": "Center"
+        "pin_positions.csv":     "Pin",
+        "pipe_positions.csv":    "Pipe",
+        "center_positions.csv":  "Center"
     }
+    colors = {"Tooltip":'gray',"Pin":'blue',"Pipe":'purple',"Center":'orange'}
 
-    fig = plt.figure(figsize=(12, 8))
-    ax = fig.add_subplot(111, projection='3d')
+    fig = plt.figure(figsize=(12,8))
+    ax  = fig.add_subplot(111, projection='3d')
 
-    colors = {
-        "Tooltip": 'gray',
-        "Pin": 'blue',
-        "Pipe": 'purple',
-        "Center": 'orange'
-    }
-
+    # plot each trajectory
     for filename, label in file_map.items():
         file_path = os.path.join(base_path, filename)
         if not os.path.exists(file_path):
-            print(f"File not found: {file_path}")
+            print(f"[WARN] File not found: {file_path}")
             continue
 
         data = pd.read_csv(file_path, header=None)
+        rows = ([run_index+1] if run_index is not None
+                else range(1, len(data)))  # skip header row
 
-        rows_to_plot = [run_index + 1] if run_index is not None else range(1, len(data))  # skip first row
-
-        for idx in rows_to_plot:
-            row = data.iloc[idx]
-            x_vals = row[::3].values
-            y_vals = row[1::3].values
-            z_vals = row[2::3].values
+        for idx in rows:
+            row    = data.iloc[idx]
+            x_vals = row[::3].to_numpy()
+            y_vals = row[1::3].to_numpy()
+            z_vals = row[2::3].to_numpy()
 
             if cutoff is not None:
-                x_vals = x_vals[:cutoff]
-                y_vals = y_vals[:cutoff]
-                z_vals = z_vals[:cutoff]
+                x_vals, y_vals, z_vals = x_vals[:cutoff], y_vals[:cutoff], z_vals[:cutoff]
 
-            ax.plot(x_vals, y_vals, z_vals, color=colors[label], alpha=0.6,
-                    label=f"{label} Path" if run_index is None and idx == 1 else None)
-            ax.scatter(x_vals[0], y_vals[0], z_vals[0], color='green', marker='o', s=50)
-            ax.scatter(x_vals[-1], y_vals[-1], z_vals[-1], color='red', marker='X', s=50)
+            # main line
+            ax.plot(x_vals, y_vals, z_vals,
+                    color=colors[label], alpha=0.6,
+                    label=(f"{label} Path" if run_index is None and idx==1 else None))
 
+            # start/end
+            ax.scatter(x_vals[0], y_vals[0], z_vals[0],
+                       color='green', marker='o', s=50)
+            ax.scatter(x_vals[-1], y_vals[-1], z_vals[-1],
+                       color='red',   marker='X', s=50)
+
+            # custom steps
+            if custom_steps:
+                for step in custom_steps:
+                    if 0 <= step < len(x_vals):
+                        ax.scatter(x_vals[step], y_vals[step], z_vals[step],
+                                   color=custom_color,
+                                   marker=custom_marker,
+                                   s=60,
+                                   label=( "Custom Point" if step==custom_steps[0] and idx==rows[0] else None)
+                                  )
+
+    # build legend once
     legend_elements = [
-        Line2D([0], [0], color='gray', lw=2, label='Tooltip Path'),
-        Line2D([0], [0], color='blue', lw=2, label='Pin Path'),
-        Line2D([0], [0], color='purple', lw=2, label='Pipe Path'),
-        Line2D([0], [0], color='orange', lw=2, label='Center Path'),
-        Line2D([0], [0], marker='o', color='w', label='Start Point', markerfacecolor='green', markersize=10),
-        Line2D([0], [0], marker='X', color='w', label='End Point', markerfacecolor='red', markersize=10)
+        Line2D([0],[0], color='gray',  lw=2, label='Tooltip Path'),
+        Line2D([0],[0], color='blue',  lw=2, label='Pin Path'),
+        Line2D([0],[0], color='purple',lw=2, label='Pipe Path'),
+        Line2D([0],[0], color='orange',lw=2, label='Center Path'),
+        Line2D([0],[0], marker='o',   color='w', label='Start Point',
+               markerfacecolor='green',markersize=10),
+        Line2D([0],[0], marker='X',   color='w', label='End Point',
+               markerfacecolor='red',  markersize=10),
+        Line2D([0],[0], marker=custom_marker,
+               color='w', label=custom_text,
+               markerfacecolor=custom_color,
+               markersize=10)
     ]
     ax.legend(handles=legend_elements)
 
     ax.set_xlabel("X [units]")
     ax.set_ylabel("Y [units]")
     ax.set_zlabel("Z [units]")
-    title = f"3D Object Paths from {folder_name}"
+    title = f"3D Object Paths from data collected {folder_name}"
+    #title = f"3D Object Paths"
     if run_index is not None:
-        title += f" — Run {run_index + 1}"
+        title += f" — Run {run_index+1}"
     ax.set_title(title)
-
     plt.tight_layout()
     plt.show()
+
 
 
 if __name__ == "__main__":
@@ -257,5 +283,14 @@ if __name__ == "__main__":
     #plot_3d_tool_path_data("../data/tool_path_data.csv")
 
     ##Mega data(pint)
-    plot_all_3d_paths("2025-08-06_10-59-00", 200, run_index=3)
     plot_single_tool_path_data("../data/2025-08-06_10-59-00/pin_positions.csv", 10, 200)
+    plot_all_3d_paths(
+        folder_name="2025-08-06_10-59-00",
+        cutoff=200,
+        custom_steps=[42],
+        custom_marker='D',
+        custom_color='black',
+        custom_text='Contact point'
+    )
+
+
