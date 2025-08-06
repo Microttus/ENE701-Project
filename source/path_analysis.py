@@ -7,6 +7,7 @@ import os
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.lines import Line2D
 
+
 def plot_tool_path_data(file_path: str, cutoff: int = None) -> None:
     """Reads the CSV data and plots the x, y, z components for each round."""
     if not os.path.exists(file_path):
@@ -205,6 +206,7 @@ def plot_all_3d_paths(folder_name: str, cutoff: int = None, run_index: int = Non
         data = pd.read_csv(file_path, header=None)
 
         rows_to_plot = [run_index + 1] if run_index is not None else range(1, len(data))  # skip first row
+
         for idx in rows_to_plot:
             row = data.iloc[idx]
             x_vals = row[::3].values
@@ -255,5 +257,5 @@ if __name__ == "__main__":
     #plot_3d_tool_path_data("../data/tool_path_data.csv")
 
     ##Mega data(pint)
-    plot_all_3d_paths("2025-08-04_11-22-50", 200, run_index=10)
-    plot_single_tool_path_data("../data/2025-08-04_11-22-50/pin_positions.csv", 10, cutoff=200)
+    plot_all_3d_paths("2025-08-06_10-59-00", 200, run_index=3)
+    plot_single_tool_path_data("../data/2025-08-06_10-59-00/pin_positions.csv", 10, 200)

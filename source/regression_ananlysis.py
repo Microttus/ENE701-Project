@@ -25,6 +25,7 @@ def perform_regression_analysis(file_path: str, dof: int = 2, cutoff: int = None
     axes_titles = ['X Axis', 'Y Axis', 'Z Axis']
     light_blue = '#87CEEB'
     dark_blue = '#1E90FF'
+    orange = '#FC9003'
 
     residuals = []
     for axis_index in range(3):
@@ -44,12 +45,40 @@ def perform_regression_analysis(file_path: str, dof: int = 2, cutoff: int = None
         model.fit(X_poly, y)
         y_pred = model.predict(X_poly)
 
+        # Confidence interval
+        n = len(y)
+        alpha = 1 - 0.99  # For 95% CI
+        y_std = np.std(y - y_pred, ddof=dof + 1)
+        t_crit = stats.t.ppf(1 - alpha / 2, df=n - (dof + 1))
+
+        # Standard error of prediction
+        XTX_inv = np.linalg.inv(X_poly.T @ X_poly)
+        se_pred = np.sqrt(np.sum((X_poly @ XTX_inv) * X_poly, axis=1)) * y_std
+        ci_margin = t_crit * se_pred
+
         # Plot each round as a line
         for idx, row in axis_data.iterrows():
             axes[axis_index].plot(time_steps, row, alpha=0.5, color=light_blue)
 
         # Plot quadratic regression line
         axes[axis_index].plot(time_steps, y_pred[:trial_count], color=dark_blue, linewidth=2, label="Regression Line")
+        # Group by time step to get mean prediction and CI per timestep
+        y_pred_grouped = y_pred.reshape(axis_data.shape[0], trial_count).mean(axis=0)
+        ci_margin_grouped = ci_margin.reshape(axis_data.shape[0], trial_count).mean(axis=0)
+
+        # Plot quadratic regression line (average)
+        axes[axis_index].plot(time_steps, y_pred_grouped, color=dark_blue, linewidth=2, label="Regression Line")
+
+        # Plot 95% confidence interval (average band)
+        axes[axis_index].fill_between(
+            time_steps,
+            y_pred_grouped - ci_margin_grouped,
+            y_pred_grouped + ci_margin_grouped,
+            color=orange,
+            alpha=0.2,
+            label="95% CI"
+        )
+
         # Calculate residuals (noise)
         residuals.append(axis_data.values.flatten() - y_pred)
         axes[axis_index].set_title(axes_titles[axis_index])
@@ -178,6 +207,7 @@ def plot_arima_fit(residuals: tuple[np.ndarray, np.ndarray, np.ndarray], order: 
 if __name__ == "__main__":
     #residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 5, cutoff=20)
     #residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 7, cutoff=50)
+    #residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 5, cutoff=50)
     #residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 7, cutoff=20)
     #residuals = perform_regression_analysis("../data/tooltip_positions_4.2.csv", 15, cutoff=250)
     residuals = perform_regression_analysis("../data/tool_path_data.csv", 3)
