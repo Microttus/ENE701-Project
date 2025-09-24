@@ -1,12 +1,25 @@
 import sys
 
 import pandas as pd
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.lines import Line2D
 from typing import Optional, List
+
+# Keep text as text / embed TrueType (many publishers like this)
+mpl.rcParams.update({
+    # good defaults for papers
+    "font.size": 12,          # base size
+    "axes.titlesize": 24,
+    "axes.labelsize": 16,
+    "xtick.labelsize": 14,
+    "ytick.labelsize": 14,
+    "legend.fontsize": 14,
+    "ps.fonttype": 42,        # keep vector text in EPS
+})
 
 
 def plot_tool_path_data(file_path: str, cutoff: int = None) -> None:
@@ -174,6 +187,7 @@ def plot_3d_tool_path_data(file_path: str, cutoff: int = None) -> None:
     plt.show()
 
 def plot_all_3d_paths(folder_name: str,
+                      run_name: Optional[str] = None,
                       cutoff: Optional[int]   = None,
                       run_index: Optional[int] = None,
                       custom_steps:  Optional[List[int]] = None,
@@ -187,6 +201,9 @@ def plot_all_3d_paths(folder_name: str,
     """
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     base_path    = os.path.join(project_root, "data", folder_name)
+
+    if run_name is None:
+        run_name = folder_name
 
     file_map = {
         "tooltip_positions.csv": "Tooltip",
@@ -237,7 +254,7 @@ def plot_all_3d_paths(folder_name: str,
                         ax.scatter(x_vals[step], y_vals[step], z_vals[step],
                                    color=custom_color,
                                    marker=custom_marker,
-                                   s=60,
+                                   s=40,
                                    label=( "Custom Point" if step==custom_steps[0] and idx==rows[0] else None)
                                   )
 
@@ -261,7 +278,7 @@ def plot_all_3d_paths(folder_name: str,
     ax.set_xlabel("X [units]")
     ax.set_ylabel("Y [units]")
     ax.set_zlabel("Z [units]")
-    title = f"3D Object Paths from data collected {folder_name}"
+    title = f"3D Object Paths from data set: {run_name}"
     #title = f"3D Object Paths"
     if run_index is not None:
         title += f" — Run {run_index+1}"
@@ -269,6 +286,93 @@ def plot_all_3d_paths(folder_name: str,
     plt.tight_layout()
     plt.show()
 
+    # Ensure nothing is rasterized:
+    for coll in ax.collections:
+        coll.set_rasterized(False)
+    for im in ax.images:
+        im.set_rasterized(False)  # but avoid imshow if you want pure vector
+
+    #fig.savefig("../images/plot_all_" + run_name + ".eps", format="eps", bbox_inches="tight")  # <- vector EPS
+    fig.savefig("../images/plot_all_" + run_name + ".png", format="png", bbox_inches="tight")  # <- PNG Alternative
+
+
+def plot_multiple_3d_paths(folder_names,
+                           cutoff: Optional[int] = None,
+                           run_index: Optional[int] = None,
+                           line_width: float = 1.5,
+                           legend_labels: Optional[List[str]] = None) -> None:
+    """Plots 3D paths for tooltip (and optionally others) from multiple folders.
+
+    Each folder gets its own color scheme for comparison.
+    """
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    file_map = {
+        "tooltip_positions.csv": "Tooltip",
+        # extend if you want Pin/Pipe/Center later
+    }
+
+    fig = plt.figure(figsize=(14, 10))
+    ax = fig.add_subplot(111, projection="3d")
+
+    base_colors = ['C0', 'C1', 'C2', 'C3', 'C4', 'C5']
+
+    for folder_idx, folder_name in enumerate(folder_names):
+        base_path = os.path.join(project_root, "data", folder_name)
+        folder_color = base_colors[folder_idx % len(base_colors)]
+
+        # legend label: use provided names or fallback
+        if legend_labels and folder_idx < len(legend_labels):
+            folder_label = legend_labels[folder_idx]
+        else:
+            folder_label = folder_name
+
+        for filename, label in file_map.items():
+            file_path = os.path.join(base_path, filename)
+            if not os.path.exists(file_path):
+                print(f"File not found: {file_path}")
+                continue
+
+            data = pd.read_csv(file_path, header=None)
+            print(f"[INFO] Reading file {file_path}")
+
+            rows_to_plot = [run_index + 1] if run_index is not None else range(1, len(data))
+
+            for idx in rows_to_plot:
+                row = data.iloc[idx]
+                x_vals = row[::3].values
+                y_vals = row[1::3].values
+                z_vals = row[2::3].values
+
+                if cutoff is not None:
+                    x_vals = x_vals[:cutoff]
+                    y_vals = y_vals[:cutoff]
+                    z_vals = z_vals[:cutoff]
+
+                # Only add legend label for the *first* trajectory in each folder
+                this_label = folder_label if idx == rows_to_plot[0] else None
+
+                ax.plot(x_vals, y_vals, z_vals,
+                        color=folder_color,
+                        alpha=0.6,
+                        linewidth=line_width,
+                        label=this_label)
+
+                # Start/end markers (no legend entry)
+                ax.scatter(x_vals[0], y_vals[0], z_vals[0],
+                           color='green', marker='o', s=40)
+                ax.scatter(x_vals[-1], y_vals[-1], z_vals[-1],
+                           color='red', marker='X', s=40)
+
+    ax.legend(loc="best")
+    ax.set_xlabel("X [units]")
+    ax.set_ylabel("Y [units]")
+    ax.set_zlabel("Z [units]")
+    ax.set_title("Comparison of 3D Object Paths Across Multiple Algorithms")
+
+    plt.tight_layout()
+    plt.show()
+
+    fig.savefig("../images/plot_alogcomp" + ".png", format="png", bbox_inches="tight")  # <- PNG Alternative
 
 
 if __name__ == "__main__":
@@ -283,14 +387,22 @@ if __name__ == "__main__":
     #plot_3d_tool_path_data("../data/tool_path_data.csv")
 
     ##Mega data(pint)
-    plot_single_tool_path_data("../data/2025-08-06_10-59-00/pin_positions.csv", 10, 200)
+    #plot_single_tool_path_data("../data/DRL/2025-09-18_19-33-43/tooltip_positions.csv", 1, 200)
     plot_all_3d_paths(
-        folder_name="2025-08-06_10-59-00",
+        folder_name="DRL/2025-09-17_18-37-41",
+        run_name="SB3",
         cutoff=200,
-        custom_steps=[42],
+        custom_steps=[40],
         custom_marker='D',
         custom_color='black',
         custom_text='Contact point'
+    )
+    plot_multiple_3d_paths(
+        ["DRL/2025-09-17_18-28-02", "DRL/2025-09-17_18-37-41", "DRL/2025-09-17_18-46-53", "DRL/2025-09-17_18-54-38", "DRL/2025-09-17_19-02-20", "DRL/2025-09-18_19-33-43"],  # your data folders
+        cutoff=100,
+        run_index=10,
+        line_width=3.0,
+        legend_labels=["SAC", "PPO", "A2C", "TD3", "DDPG", "TRPO"]
     )
 
 
